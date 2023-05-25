@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import {
 	insertTokenDB,
 	insertUserDB,
+	verifyUserByToken,
 	verifyUserDB,
 } from "../repositories/user.repositories.js";
 import { v4 as uuid } from "uuid";
@@ -34,6 +35,20 @@ export async function signIn(req, res) {
 		const token = uuid();
 		await insertTokenDB(token, email);
 		res.status(200).send({ token: token });
+	} catch (err) {
+		res.send(err.message);
+	}
+}
+export async function infosUser(req, res) {
+	const { authorization } = req.headers;
+	const token = authorization?.replace("Bearer ", "");
+	if (!token) return res.sendStatus(401);
+	try {
+		const verifyUser = await verifyUserByToken(token);
+		if (!verifyUser.rows.length)
+			return res.status(401).send({ message: "Acesso negado!" });
+		delete verifyUser.rows[0].password;
+		res.status(200).send(verifyUser);
 	} catch (err) {
 		res.send(err.message);
 	}

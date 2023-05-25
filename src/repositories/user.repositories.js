@@ -38,3 +38,13 @@ export async function insertTokenDB(token, email) {
 		return err.message;
 	}
 }
+export async function verifyUserByToken(token) {
+	try {
+		const result = await db.query(`SELECT * FROM users WHERE token=$1`, [
+			token,
+		]);
+		return result;
+	} catch (err) {
+		return err.message;
+	}
+}
