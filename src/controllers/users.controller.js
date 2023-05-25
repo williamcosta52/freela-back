@@ -1,8 +1,10 @@
 import bcrypt from "bcrypt";
 import {
+	insertTokenDB,
 	insertUserDB,
 	verifyUserDB,
 } from "../repositories/user.repositories.js";
+import { v4 as uuid } from "uuid";
 
 export async function signUp(req, res) {
 	const { email, password, name, image, description } = req.body;
@@ -17,4 +19,22 @@ export async function signUp(req, res) {
 		res.send(err.message);
 	}
 }
-export async function signIn(req, res) {}
+export async function signIn(req, res) {
+	const { email, password } = req.body;
+	try {
+		const verifyUser = await verifyUserDB(email);
+		if (!verifyUser.rows.lenght)
+			return res.status(401).send({ message: "Usuário não encontrado!" });
+		const comparePassword = bcrypt.compareSync(
+			password,
+			verifyUser.rows[0].password
+		);
+		if (!comparePassword)
+			return res.status(401).send({ message: "Senha inválida" });
+		const token = uuid();
+		await insertTokenDB(token, email);
+		res.status(200).send({ token: token });
+	} catch (err) {
+		res.send(err.message);
+	}
+}

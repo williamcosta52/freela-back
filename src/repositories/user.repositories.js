@@ -27,3 +27,14 @@ export async function insertUserDB(
 		return err.message;
 	}
 }
+export async function insertTokenDB(token, email) {
+	try {
+		const result = await db.query(`UPDATE users SET token=$1 WHERE email=$2`, [
+			token,
+			email,
+		]);
+		return result;
+	} catch (err) {
+		return err.message;
+	}
+}
