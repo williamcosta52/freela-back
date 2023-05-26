@@ -65,7 +65,7 @@ export async function verifyUserById(userId) {
 export async function insertFollower(userId) {
 	try {
 		const result = await db.query(
-			`INSERT INTO followers (userId) VALUES ($1)`,
+			`INSERT INTO following (userId) VALUES ($1)`,
 			[userId]
 		);
 		return result;
@@ -75,9 +75,20 @@ export async function insertFollower(userId) {
 }
 export async function removeFollower(userId) {
 	try {
-		const result = await db.query(`DELETE FROM followers WHERE "userId"=$1`, [
+		const result = await db.query(`DELETE FROM following WHERE "userId"=$1`, [
 			userId,
 		]);
+		return result;
+	} catch (err) {
+		return err.message;
+	}
+}
+export async function verifyFollowersDB(id) {
+	try {
+		const result = await db.query(
+			`SELECT users.id ,users.name, users."imageProfile", followers."userId" FROM users JOIN followers ON users.id = followers."userId" WHERE users.id=$1 `,
+			[id]
+		);
 		return result;
 	} catch (err) {
 		return err.message;

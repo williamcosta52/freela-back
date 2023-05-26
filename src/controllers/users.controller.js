@@ -4,6 +4,7 @@ import {
 	insertTokenDB,
 	insertUserDB,
 	removeFollower,
+	verifyFollowersDB,
 	verifyUserById,
 	verifyUserByToken,
 	verifyUserDB,
@@ -20,7 +21,7 @@ export async function signUp(req, res) {
 		await insertUserDB(email, encryptPassword, name, imageProfile, description);
 		res.status(201).send({ message: "Cadastro finalizado!" });
 	} catch (err) {
-		res.send(err.message);
+		res.status(500).send(err.message);
 	}
 }
 export async function signIn(req, res) {
@@ -39,7 +40,7 @@ export async function signIn(req, res) {
 		await insertTokenDB(token, email);
 		res.status(200).send({ token: token });
 	} catch (err) {
-		res.send(err.message);
+		res.status(500).send(err.message);
 	}
 }
 export async function infosUser(req, res) {
@@ -53,10 +54,10 @@ export async function infosUser(req, res) {
 		delete verifyUser.rows[0].password;
 		res.status(200).send(verifyUser);
 	} catch (err) {
-		res.send(err.message);
+		res.status(500).send(err.message);
 	}
 }
-export async function follow(req, res) {
+export async function following(req, res) {
 	const { userId } = req.body;
 	const { authorization } = req.headers;
 	const token = authorization?.replace("Bearer ", "");
@@ -73,6 +74,20 @@ export async function follow(req, res) {
 			res.status(200).send({ message: "Seguindo" });
 		}
 	} catch (err) {
-		res.send(err.message);
+		res.status(500).send(err.message);
+	}
+}
+export async function followers(req, res) {
+	const { authorization } = req.headers;
+	const token = authorization?.replace("Bearer ", "");
+	if (!token) return res.sendStatus(401);
+	try {
+		const verifyUser = await verifyUserByToken(token);
+		if (!verifyUser.rows.length)
+			return res.status(401).send({ message: "Não autorizado" });
+		const verifyFollowers = await verifyFollowersDB(verifyUser.rows[0].id);
+		res.send(verifyFollowers.rows);
+	} catch (err) {
+		res.status(500).send(err.message);
 	}
 }

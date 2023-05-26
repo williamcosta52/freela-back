@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
-	follow,
+	followers,
+	following,
 	infosUser,
 	signIn,
 	signUp,
@@ -13,6 +14,7 @@ const userRouter = Router();
 userRouter.post("/signup", validateSchema(signUpSchema), signUp);
 userRouter.post("/signin", validateSchema(signInSchema), signIn);
 userRouter.get("/infos", infosUser);
-userRouter.post("follow", follow);
+userRouter.post("/following", following);
+userRouter.get("/followers", followers);
 
 export default userRouter;
