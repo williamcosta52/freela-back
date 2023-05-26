@@ -1,7 +1,10 @@
 import bcrypt from "bcrypt";
 import {
+	insertFollower,
 	insertTokenDB,
 	insertUserDB,
+	removeFollower,
+	verifyUserById,
 	verifyUserByToken,
 	verifyUserDB,
 } from "../repositories/user.repositories.js";
@@ -49,6 +52,26 @@ export async function infosUser(req, res) {
 			return res.status(401).send({ message: "Acesso negado!" });
 		delete verifyUser.rows[0].password;
 		res.status(200).send(verifyUser);
+	} catch (err) {
+		res.send(err.message);
+	}
+}
+export async function follow(req, res) {
+	const { userId } = req.body;
+	const { authorization } = req.headers;
+	const token = authorization?.replace("Bearer ", "");
+	if (!token) return res.sendStatus(401);
+	try {
+		const verifyUser = await verifyUserByToken(token);
+		if (!verifyUser.rows.length) return res.sendStatus(401);
+		const verifyFollowUser = await verifyUserById(userId);
+		if (verifyFollowUser.rows.length) {
+			await removeFollower(verifyFollowUser.rows[0].id);
+			res.status(200).send({ message: "Parou de seguir" });
+		} else {
+			await insertFollower(verifyFollowUser.rows[0].id);
+			res.status(200).send({ message: "Seguindo" });
+		}
 	} catch (err) {
 		res.send(err.message);
 	}

@@ -51,3 +51,35 @@ export async function verifyUserByToken(token) {
 		return err.message;
 	}
 }
+export async function verifyUserById(userId) {
+	try {
+		const result = await db.query(
+			`SELECT * FROM followers WHERE "userId"= $1`,
+			[userId]
+		);
+		return result;
+	} catch (err) {
+		return err.message;
+	}
+}
+export async function insertFollower(userId) {
+	try {
+		const result = await db.query(
+			`INSERT INTO followers (userId) VALUES ($1)`,
+			[userId]
+		);
+		return result;
+	} catch (err) {
+		return err.message;
+	}
+}
+export async function removeFollower(userId) {
+	try {
+		const result = await db.query(`DELETE FROM followers WHERE "userId"=$1`, [
+			userId,
+		]);
+		return result;
+	} catch (err) {
+		return err.message;
+	}
+}
