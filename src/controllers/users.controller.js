@@ -8,13 +8,13 @@ import {
 import { v4 as uuid } from "uuid";
 
 export async function signUp(req, res) {
-	const { email, password, name, image, description } = req.body;
+	const { email, password, name, imageProfile, description } = req.body;
 	const encryptPassword = bcrypt.hashSync(password, 10);
 	try {
 		const verifyUser = await verifyUserDB(email);
 		if (verifyUser.rows.lenght)
 			return res.status(409).send({ message: "Email já cadastrado" });
-		await insertUserDB(email, encryptPassword, name, image, description);
+		await insertUserDB(email, encryptPassword, name, imageProfile, description);
 		res.status(201).send({ message: "Cadastro finalizado!" });
 	} catch (err) {
 		res.send(err.message);

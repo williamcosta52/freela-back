@@ -14,13 +14,13 @@ export async function insertUserDB(
 	email,
 	encryptPassword,
 	name,
-	image,
+	imageProfile,
 	description
 ) {
 	try {
 		const result = await db.query(
-			`INSERT INTO users (email, password, name, image, description) VALUES ($1, $2, $3, $4, $5)`,
-			[email, encryptPassword, name, image, description]
+			`INSERT INTO users (email, password, name, "imageProfile", description) VALUES ($1, $2, $3, $4, $5)`,
+			[email, encryptPassword, name, imageProfile, description]
 		);
 		return result;
 	} catch (err) {
@@ -40,9 +40,12 @@ export async function insertTokenDB(token, email) {
 }
 export async function verifyUserByToken(token) {
 	try {
-		const result = await db.query(`SELECT * FROM users WHERE token=$1`, [
-			token,
-		]);
+		const result = await db.query(
+			`SELECT users.name, users.email, users."imageProfile", users.description, posts.id ,posts.image, posts."postDescription", posts.likes, posts."postedAt"
+			FROM users
+			JOIN posts ON users.id = posts."userId" WHERE users.token = $1;`,
+			[token]
+		);
 		return result;
 	} catch (err) {
 		return err.message;
