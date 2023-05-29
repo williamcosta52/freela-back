@@ -40,12 +40,9 @@ export async function insertTokenDB(token, email) {
 }
 export async function verifyUserByToken(token) {
 	try {
-		const result = await db.query(
-			`SELECT users.name, users.email, users."imageProfile", users.description, posts.id ,posts.image, posts."postDescription", posts.likes, posts."postedAt"
-			FROM users
-			JOIN posts ON users.id = posts."userId" WHERE users.token = $1;`,
-			[token]
-		);
+		const result = await db.query(`SELECT * FROM users WHERE token = $1;`, [
+			token,
+		]);
 		return result;
 	} catch (err) {
 		return err.message;
@@ -89,6 +86,16 @@ export async function verifyFollowersDB(id) {
 			`SELECT users.id ,users.name, users."imageProfile", followers."userId" FROM users JOIN followers ON users.id = followers."userId" WHERE users.id=$1 `,
 			[id]
 		);
+		return result;
+	} catch (err) {
+		return err.message;
+	}
+}
+export async function infosDB(id) {
+	try {
+		const result = await db.query(`SELECT * FROM posts WHERE "userId" = $1;`, [
+			id,
+		]);
 		return result;
 	} catch (err) {
 		return err.message;

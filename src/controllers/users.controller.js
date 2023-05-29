@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import {
+	infosDB,
 	insertFollower,
 	insertTokenDB,
 	insertUserDB,
@@ -10,6 +11,7 @@ import {
 	verifyUserDB,
 } from "../repositories/user.repositories.js";
 import { v4 as uuid } from "uuid";
+import { likesDB } from "../repositories/posts.repositories.js";
 
 export async function signUp(req, res) {
 	const { email, password, name, imageProfile, description } = req.body;
@@ -28,7 +30,7 @@ export async function signIn(req, res) {
 	const { email, password } = req.body;
 	try {
 		const verifyUser = await verifyUserDB(email);
-		if (!verifyUser.rows.lenght)
+		if (verifyUser.rows.lenght === 0)
 			return res.status(401).send({ message: "Usuário não encontrado!" });
 		const comparePassword = bcrypt.compareSync(
 			password,
@@ -38,7 +40,12 @@ export async function signIn(req, res) {
 			return res.status(401).send({ message: "Senha inválida" });
 		const token = uuid();
 		await insertTokenDB(token, email);
-		res.status(200).send({ token: token });
+		delete verifyUser.rows[0].password;
+		const infos = {
+			...verifyUser.rows[0],
+			token: token,
+		};
+		res.status(200).send(infos);
 	} catch (err) {
 		res.status(500).send(err.message);
 	}
@@ -49,10 +56,12 @@ export async function infosUser(req, res) {
 	if (!token) return res.sendStatus(401);
 	try {
 		const verifyUser = await verifyUserByToken(token);
-		if (!verifyUser.rows.length)
+		if (verifyUser.rows.length === 0)
 			return res.status(401).send({ message: "Acesso negado!" });
 		delete verifyUser.rows[0].password;
-		res.status(200).send(verifyUser);
+		const likes = await likesDB();
+		const infos = await infosDB(verifyUser.rows[0].id);
+		res.status(200).send(infos.rows);
 	} catch (err) {
 		res.status(500).send(err.message);
 	}
@@ -66,11 +75,11 @@ export async function following(req, res) {
 		const verifyUser = await verifyUserByToken(token);
 		if (!verifyUser.rows.length) return res.sendStatus(401);
 		const verifyFollowUser = await verifyUserById(userId);
-		if (verifyFollowUser.rows.length) {
+		if (verifyFollowUser.rows.length !== 0) {
 			await removeFollower(verifyFollowUser.rows[0].id);
 			res.status(200).send({ message: "Parou de seguir" });
 		} else {
-			await insertFollower(verifyFollowUser.rows[0].id);
+			await insertFollower(userId);
 			res.status(200).send({ message: "Seguindo" });
 		}
 	} catch (err) {
